@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>আমার দোকান</title>
+<style>
+:root{
+  --ink:#1b2a41;
+  --paper:#f7f9fc;
+  --card:#ffffff;
+  --brand:#0f766e;
+  --brand-dark:#0b5a54;
+  --sun:#fbbf24;
+  --line:#dde4ee;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:"Noto Sans Bengali","Kalpurush","Nirmala UI",system-ui,sans-serif;
+  background:var(--paper);
+  color:var(--ink);
+  line-height:1.6;
+  padding-bottom:90px;
+}
+header{
+  background:var(--ink);
+  color:#fff;
+  padding:16px 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  position:sticky;top:0;z-index:5;
+}
+header h1{font-size:22px}
+header span{font-size:14px;opacity:.8}
+.hero{
+  padding:48px 20px 36px;
+  max-width:720px;
+  margin:0 auto;
+}
+.hero h2{font-size:34px;line-height:1.25;margin-bottom:12px}
+.hero p{font-size:17px;max-width:46ch;color:#41536b}
+.hero .tag{
+  display:inline-block;
+  background:var(--sun);
+  padding:4px 12px;
+  border-radius:6px;
+  font-size:14px;
+  font-weight:700;
+  margin-top:16px;
+}
+.filters{
+  max-width:960px;margin:0 auto;padding:0 20px 16px;
+  display:flex;gap:8px;flex-wrap:wrap;
+}
+.filters button{
+  border:1.5px solid var(--line);
+  background:#fff;
+  padding:8px 18px;
+  border-radius:999px;
+  font:inherit;font-size:15px;
+  cursor:pointer;
+}
+.filters button.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+.grid{
+  max-width:960px;margin:0 auto;padding:0 20px;
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
+  gap:16px;
+}
+.item{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:12px;
+  overflow:hidden;
+  display:flex;flex-direction:column;
+}
+.pic{
+  font-size:64px;
+  height:130px;
+  display:flex;align-items:center;justify-content:center;
+  background:#e8f3f1;
+}
+.info{padding:14px;display:flex;flex-direction:column;gap:6px;flex:1}
+.info h3{font-size:17px}
+.info .price{font-size:20px;font-weight:700;color:var(--brand)}
+.info button{
+  margin-top:auto;
+  background:var(--brand);color:#fff;
+  border:none;border-radius:8px;
+  padding:10px;font:inherit;font-weight:600;cursor:pointer;
+}
+.info button:hover{background:var(--brand-dark)}
+button:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.bar{
+  position:fixed;left:0;right:0;bottom:0;
+  background:#fff;border-top:1px solid var(--line);
+  padding:12px 20px;
+  display:flex;justify-content:space-between;align-items:center;gap:12px;
+}
+.bar .sum{font-size:16px}
+.bar .sum b{font-size:20px}
+.bar .order{
+  background:#16a34a;color:#fff;border:none;border-radius:10px;
+  padding:12px 20px;font:inherit;font-weight:700;cursor:pointer;
+}
+.bar .clear{
+  background:none;border:none;color:#64748b;font:inherit;text-decoration:underline;cursor:pointer;
+}
+.bar .order:disabled{background:#a7b3c2;cursor:not-allowed}
+footer{text-align:center;color:#64748b;font-size:14px;padding:28px 20px}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🛍️ আমার দোকান</h1>
+  <span>সারা বাংলাদেশে ডেলিভারি</span>
+</header>
+
+<section class="hero">
+  <h2>পছন্দের জিনিস বেছে নিন, WhatsApp-এ অর্ডার করুন</h2>
+  <p>কার্টে প্রোডাক্ট যোগ করুন, তারপর এক ট্যাপেই অর্ডার পাঠিয়ে দিন। পেমেন্ট ডেলিভারির সময়।</p>
+  <div class="tag">ক্যাশ অন ডেলিভারি</div>
+</section>
+
+<div class="filters" id="filters"></div>
+<main class="grid" id="grid"></main>
+
+<div class="bar">
+  <div class="sum">মোট <b id="total">৳০</b> <small id="count">(০টি)</small></div>
+  <div>
+    <button class="clear" id="clear">খালি করুন</button>
+    <button class="order" id="order" disabled>WhatsApp-এ অর্ডার</button>
+  </div>
+</div>
+
+<footer>© 2026 আমার দোকান</footer>
+
+<script>
+'use strict';
+
+// ====== এখানে আপনার তথ্য বদলান ======
+const WHATSAPP_NUMBER = "8801XXXXXXXXX"; // দেশের কোড সহ, + ছাড়া (যেমন 8801712345678)
+
+const products = [
+  {id:1, name:"ওয়্যারলেস ইয়ারবাড", price:850,  cat:"গ্যাজেট", icon:"🎧"},
+  {id:2, name:"মোবাইল চার্জার",     price:450,  cat:"গ্যাজেট", icon:"🔌"},
+  {id:3, name:"স্মার্ট ওয়াচ",       price:1800, cat:"গ্যাজেট", icon:"⌚"},
+  {id:4, name:"কটন টি-শার্ট",       price:350,  cat:"পোশাক",  icon:"👕"},
+  {id:5, name:"ব্যাকপ্যাক",         price:950,  cat:"পোশাক",  icon:"🎒"},
+  {id:6, name:"স্টিলের পানির বোতল", price:400,  cat:"ঘরোয়া", icon:"🧴"}
+];
+
+let cart = {};          // { productId: quantity }
+let activeCat = "সব";
+
+const bn = n => String(n).replace(/\d/g, d => "০১২৩৪৫৬৭৮৯"[d]);
+const fmt = n => "৳" + bn(n.toLocaleString("en-US"));
+
+function renderFilters(){
+  const cats = ["সব", ...new Set(products.map(p => p.cat))];
+  const box = document.getElementById("filters");
+  box.innerHTML = "";
+  cats.forEach(c => {
+    const b = document.createElement("button");
+    b.textContent = c;
+    if (c === activeCat) b.classList.add("active");
+    b.onclick = () => { activeCat = c; renderFilters(); renderProducts(); };
+    box.appendChild(b);
+  });
+}
+
+function renderProducts(){
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
+  products
+    .filter(p => activeCat === "সব" || p.cat === activeCat)
+    .forEach(p => {
+      const qty = cart[p.id] || 0;
+      const el = document.createElement("article");
+      el.className = "item";
+      el.innerHTML =
+        '<div class="pic">' + p.icon + '</div>' +
+        '<div class="info">' +
+          '<h3>' + p.name + '</h3>' +
+          '<div class="price">' + fmt(p.price) + '</div>' +
+          '<button>' + (qty ? "আরও একটি যোগ (" + bn(qty) + ")" : "কার্টে যোগ করুন") + '</button>' +
+        '</div>';
+      el.querySelector("button").onclick = () => addToCart(p.id);
+      grid.appendChild(el);
+    });
+}
+
+function addToCart(id){
+  cart[id] = (cart[id] || 0) + 1;
+  update();
+}
+
+function update(){
+  let total = 0, count = 0;
+  products.forEach(p => {
+    const q = cart[p.id] || 0;
+    total += q * p.price;
+    count += q;
+  });
+  document.getElementById("total").textContent = fmt(total);
+  document.getElementById("count").textContent = "(" + bn(count) + "টি)";
+  document.getElementById("order").disabled = count === 0;
+  renderProducts();
+}
+
+document.getElementById("clear").onclick = () => { cart = {}; update(); };
+
+document.getElementById("order").onclick = () => {
+  let msg = "আসসালামু আলাইকুম, আমি অর্ডার করতে চাই:\n\n";
+  let total = 0;
+  products.forEach(p => {
+    const q = cart[p.id] || 0;
+    if (q){
+      msg += "• " + p.name + " x" + q + " = " + (q * p.price) + " টাকা\n";
+      total += q * p.price;
+    }
+  });
+  msg += "\nমোট: " + total + " টাকা\nনাম:\nঠিকানা:\nফোন:";
+  window.open("https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(msg), "_blank");
+};
+
+renderFilters();
+update();
+</script>
+</body>
+</html>
